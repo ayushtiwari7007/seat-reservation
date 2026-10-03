@@ -1,0 +1,64 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: seat-reservation
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:seat_reservation_db}?reWriteBatchedInserts=true}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:auth1234}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 3
+  jackson:
+    deserialization:
+      # money is integer paise: reject 250.5 instead of silently truncating it
+      accept-float-as-int: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 1000
+
+app:
+  jwt:
+    # Set JWT_SECRET in every non-local environment. Use a random value of at least 32 characters.
+    secret: ${JWT_SECRET:local-only-change-this-jwt-secret-32chars}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+        liveness:
+          include: livenessState
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+logging:
+  structured:
+    format:
+      console: logstash
