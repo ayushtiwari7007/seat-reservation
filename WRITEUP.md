@@ -32,6 +32,3 @@ I would page on readiness staying down, any sustained nonzero 5xx rate, an unexp
 
 Codex assisted with reviewing the existing implementation and drafting the metrics, structured request logging, Render Blueprint, burst runner, documentation, and this write-up. The project owner chose Render and the public GitHub repository direction and remains responsible for reviewing credentials, the public deployment, and measured load-test results. No live deployment or 20,000-request result is claimed until it has actually been run.
 
-## What I would do next
-
-Replace the development token-minting endpoint with a trusted identity provider and admin provisioning, add automated PostgreSQL concurrency tests in CI, run the burst on a paid/staging database sized for the target load, and add alerts/dashboards for error rate, latency, pool saturation, and reconciliation.
