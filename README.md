@@ -142,7 +142,7 @@ Use a staging service because the script creates a new show and leaves its reser
 ./burst.sh https://YOUR-SERVICE.onrender.com
 ```
 
-The default run sends 500 distinct users to one hot seat, then checks same-key replay/body mismatch, races ten requests from one user against a four-seat limit, and fetches the final show state. It prints outcome distributions, 5xx count, and the reconciliation result; it exits nonzero if a check fails.
+The default run sends 500 distinct users to one hot seat with up to 32 simultaneous client workers, then checks same-key replay/body mismatch, races ten requests from one user against a four-seat limit, and fetches the final show state. This concurrency is suitable for a small free-tier instance; increase it only when the deployment has enough capacity. It prints outcome distributions, 5xx count, and the reconciliation result; it exits nonzero if a check fails.
 
 Tune the hot-seat stampede with environment variables:
 

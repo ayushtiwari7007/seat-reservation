@@ -76,7 +76,7 @@ def main():
         return 2
     base = sys.argv[1].rstrip("/")
     users = int(os.getenv("BURST_USERS", "500"))
-    workers = max(2, int(os.getenv("BURST_WORKERS", str(min(users, 250)))))
+    workers = max(2, int(os.getenv("BURST_WORKERS", str(min(users, 32)))))
     per_user_limit = 4
     if users < 2 or workers < 2:
         raise ValueError("BURST_USERS and BURST_WORKERS must both be at least 2")
