@@ -8,6 +8,7 @@ import com.seatreservation.dto.response.ShowStateResponse;
 import com.seatreservation.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
+@Slf4j
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -26,6 +28,7 @@ public class ReservationController {
     public ResponseEntity<ShowStateResponse> getShowState(
             @PathVariable UUID showId) {
 
+        log.info("controller.show_state.request showId={}", showId);
         return ResponseEntity.ok(reservationService.getShowState(showId));
     }
 
@@ -36,6 +39,8 @@ public class ReservationController {
             @RequestAttribute(JwtAuthenticationFilter.USER_ID_ATTRIBUTE) String userId,
             @Valid @RequestBody ReserveSeatRequest request) {
 
+        log.info("controller.reserve.request showId={} userId={} seatCount={}",
+                showId, userId, request.getSeats() == null ? 0 : request.getSeats().size());
         ReservationResponse response = reservationService.reserve(showId, userId, request, headerKey);
         return ResponseEntity.created(URI.create("/reservations/" + response.reservationId())).body(response);
     }
@@ -45,6 +50,8 @@ public class ReservationController {
             @PathVariable UUID reservationId,
             @RequestAttribute(JwtAuthenticationFilter.USER_ID_ATTRIBUTE) String userId,
             @Valid @RequestBody(required = false) CancelReservationRequest request) {
+        log.info("controller.cancel.request reservationId={} userId={} seat={}",
+                reservationId, userId, request == null ? "all" : request.getSeat());
         return ResponseEntity.ok(reservationService.cancel(reservationId, userId, request));
     }
 }

@@ -16,6 +16,11 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     public static final String HEADER = "X-Request-Id";
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/actuator/");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String supplied = request.getHeader(HEADER);

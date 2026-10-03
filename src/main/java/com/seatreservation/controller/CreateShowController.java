@@ -7,6 +7,7 @@ import com.seatreservation.dto.response.CreateShowResponse;
 import com.seatreservation.service.CreateShowService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -21,6 +22,7 @@ import java.net.URI;
 @RequestMapping("/shows")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
+@Slf4j
 public class CreateShowController {
 
     private final CreateShowService createShowService;
@@ -30,7 +32,10 @@ public class CreateShowController {
             @RequestAttribute(JwtAuthenticationFilter.ROLE_ATTRIBUTE) String role,
             @Valid @RequestBody CreateShowRequest request) {
 
+        log.info("controller.create_show.request role={} seatCount={}",
+                role, request.getSeats() == null ? 0 : request.getSeats().size());
         if (!JwtAuthenticationFilter.ADMIN_ROLE.equals(role)) {
+            log.warn("controller.create_show.denied reason=admin_role_required role={}", role);
             throw new ForbiddenException("admin role is required to create a show");
         }
 

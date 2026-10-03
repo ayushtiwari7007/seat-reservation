@@ -33,6 +33,7 @@ public class CreateShowService {
 
     @Transactional
     public CreateShowResponse create(CreateShowRequest req) {
+        log.info("service.create_show.started seatCount={}", req.getSeats() == null ? 0 : req.getSeats().size());
         List<String> labels = req.getSeats().stream().map(String::trim).toList();
 
         Set<String> seen = new HashSet<>();

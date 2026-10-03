@@ -49,6 +49,8 @@ public class ReservationService {
     @Transactional
     public ReservationResponse reserve(UUID showId, String userId, ReserveSeatRequest request, String headerKey) {
 
+        log.info("service.reserve.started showId={} userId={} seatCount={}",
+                showId, userId, request.getSeats() == null ? 0 : request.getSeats().size());
         var show = showRepository.findById(showId).orElseThrow(() -> new ResourceNotFoundException("show not found: " + showId));
 
         String key = resolveIdempotencyKey(request.getIdempotencyKey(), headerKey);
@@ -71,7 +73,7 @@ public class ReservationService {
             IdempotencyKey existingKey = existing.get();
 
             if (!existingKey.getUserId().equals(userId) || !existingKey.getShowId().equals(showId) || !existingKey.getRequestHash().equals(requestHash)) {
-
+                log.warn("reservation.declined reason=idempotency_conflict showId={} userId={}", showId, userId);
                 throw new ConflictException("Idempotency key already used with a different request");
             }
 
@@ -91,6 +93,8 @@ public class ReservationService {
 
         if (currentUserSeats + seats.size() > limit) {
             metrics.declined("per_user_limit");
+            log.info("reservation.declined reason=per_user_limit showId={} userId={} requestedSeats={} currentSeats={} limit={}",
+                    showId, userId, seats.size(), currentUserSeats, limit);
             throw new ConflictException("per-user seat limit exceeded");
         }
 
@@ -98,6 +102,8 @@ public class ReservationService {
 
         if (locked.size() != seats.size()) {
             metrics.declined("seat_not_found");
+            log.info("reservation.declined reason=seat_not_found showId={} userId={} requestedSeats={}",
+                    showId, userId, seats.size());
             throw new ConflictException("one or more requested seats do not exist");
         }
 
@@ -105,6 +111,8 @@ public class ReservationService {
 
         if (!unavailable.isEmpty()) {
             metrics.declined("seat_taken");
+            log.info("reservation.declined reason=seat_taken showId={} userId={} unavailableSeatCount={}",
+                    showId, userId, unavailable.size());
             throw new ConflictException("seat(s) unavailable: " + String.join(", ", unavailable));
         }
 
@@ -125,6 +133,8 @@ public class ReservationService {
         int confirmed = reservationRepository.confirmSeats(showId, seats, reservationId, userId);
         if (confirmed != seats.size()) {
             metrics.declined("seat_taken");
+            log.info("reservation.declined reason=seat_taken showId={} userId={} requestedSeats={}",
+                    showId, userId, seats.size());
             throw new ConflictException("one or more requested seats are no longer available");
         }
 
@@ -235,6 +245,8 @@ public class ReservationService {
     @Transactional
     public ReservationResponse cancel(UUID reservationId, String userId, CancelReservationRequest request) {
 
+        log.info("service.cancel.started reservationId={} userId={} seat={}",
+                reservationId, userId, request == null ? "all" : request.getSeat());
         /*
          * 1. Lock reservation row.
          */
@@ -351,6 +363,7 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public ShowStateResponse getShowState(UUID showId) {
 
+        log.info("service.show_state.started showId={}", showId);
         var show = showRepository.findById(showId)
                 .orElseThrow(() -> new ResourceNotFoundException("show not found: " + showId));
 
