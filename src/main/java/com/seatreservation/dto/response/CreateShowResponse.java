@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.UUID;
 
 public record CreateShowResponse(
-        UUID id,
-        String name,
+        @JsonProperty("show_id") UUID id,
+        @JsonProperty("show_name") String name,
         @JsonProperty("price_paise") long pricePaise,
         @JsonProperty("per_user_limit") int perUserLimit,
         @JsonProperty("total_seats") int totalSeats,
