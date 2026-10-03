@@ -11,8 +11,6 @@ services:
     plan: free
     healthCheckPath: /actuator/health/readiness
     envVars:
-      - key: PORT
-        value: 8080
       - key: DB_HOST
         fromDatabase:
           name: seat-reservation-db
