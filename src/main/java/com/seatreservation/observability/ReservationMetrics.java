@@ -7,11 +7,16 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Component
 public class ReservationMetrics {
     private final MeterRegistry registry;
     private final JdbcTemplate jdbcTemplate;
+    // Micrometer gauges keep only a weak reference to their state object. Retain these
+    // UUIDs so a registered show's gauge remains readable after garbage collection.
+    private final ConcurrentMap<UUID, UUID> showGaugeStates = new ConcurrentHashMap<>();
 
     public ReservationMetrics(MeterRegistry registry, JdbcTemplate jdbcTemplate) {
         this.registry = registry;
@@ -31,8 +36,9 @@ public class ReservationMetrics {
     }
 
     public void registerShow(UUID showId) {
+        UUID gaugeState = showGaugeStates.computeIfAbsent(showId, id -> id);
         registry.gauge("seats.available", io.micrometer.core.instrument.Tags.of("show_id", showId.toString()),
-                showId, id -> {
+                gaugeState, id -> {
                     try {
                         Integer count = jdbcTemplate.queryForObject(
                                 "SELECT count(*) FROM seats WHERE show_id = ? AND status = 'available'",
